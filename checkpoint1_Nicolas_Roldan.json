@@ -1,0 +1,173 @@
+{
+  "name": "checkpoint1_Nicolas_Roldan",
+  "nodes": [
+    {
+      "parameters": {
+        "options": {}
+      },
+      "id": "47e2b3bd-034c-48eb-b31c-1d615c358f22",
+      "name": "When chat message received",
+      "type": "@n8n/n8n-nodes-langchain.chatTrigger",
+      "typeVersion": 1.5,
+      "position": [
+        -352,
+        -496
+      ],
+      "webhookId": "b187d666-1d25-45e9-96aa-7ccb8935fa3d"
+    },
+    {
+      "parameters": {
+        "options": {
+          "systemMessage": "=## ROL\nSos el asistente de agenda de la empresa Transporte Don Mauricio. Atendés consultas\nde clientes y del personal sobre turnos y reuniones.\n\n## OBJETIVOS\n- Consultar la disponibilidad en el calendario de la empresa.\n- Agendar reuniones cuando el usuario lo pida con fecha y hora claras.\n- Responder de forma breve, clara y profesional.\n\n## RESTRICCIONES\n- No borres ni modifiques eventos existentes.\n- No inventes horarios: siempre consultá el calendario antes de confirmar.\n- Si falta información (fecha, hora, motivo), pedila antes de actuar.\n- No respondas temas ajenos a la agenda de la empresa.\n- Usá español neutro y formal. No uses lenguaje inclusivo (por ejemplo\n  \"todes\", \"@\", \"x\" o la \"e\" como marca de género).\n\nLa fecha y hora actual es {{ $now.setZone('America/Argentina/Cordoba').toFormat('cccc dd/MM/yyyy HH:mm') }} (hora de Argentina).",
+          "maxIterations": 5,
+          "returnIntermediateSteps": true
+        }
+      },
+      "id": "c546ecc3-29eb-4c9e-a589-b7a4a0c12f14",
+      "name": "AI Agent",
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        -144,
+        -496
+      ]
+    },
+    {
+      "parameters": {
+        "modelName": "models/gemini-3.5-flash-lite",
+        "options": {}
+      },
+      "id": "8be012a1-4984-4522-82cb-bdd67b942d91",
+      "name": "Google Gemini Chat Model",
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1.2,
+      "position": [
+        -144,
+        -272
+      ],
+      "credentials": {
+        "googlePalmApi": {
+          "id": "glYWRGTMXFnP1GAl",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sendTo": "nicolas.roldan638@gmail.com",
+        "subject": "Reporte del agente de IA",
+        "message": "=Respuesta del agente:\n{{ $json.output }}\n\nExecution Log:\n{{ $json.intermediateSteps.map(s => s.action.tool + ' → ' + JSON.stringify(s.action.toolInput)).join('\\n') || 'Sin herramientas' }}",
+        "options": {}
+      },
+      "id": "a16ea196-856c-4ee2-8d92-7ba4a70395e0",
+      "name": "Send a message",
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        224,
+        -496
+      ],
+      "webhookId": "d9c24521-338b-4c3c-aaec-bef985ddf4e3",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "jGYIoUZMlPcBSFXh",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "descriptionType": "manual",
+        "toolDescription": "Usá esta herramienta para consultar eventos del calendario en un rango de fechas…” Sacá cualquier mención a agendar o crear.",
+        "operation": "getAll",
+        "calendar": {
+          "__rl": true,
+          "value": "eb1b7705b9c7bb34975a9aa0d9e9512f7308d71b863e416b1ec9730ff09c37f9@group.calendar.google.com",
+          "mode": "list",
+          "cachedResultName": "transporte Don Mauricio Engrasar camiones"
+        },
+        "timeMin": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('After', ``, 'string') }}",
+        "timeMax": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Before', ``, 'string') }}",
+        "options": {}
+      },
+      "id": "25069877-5b61-491d-bc5c-b2e7d33ca1be",
+      "name": "Get many events in Google Calendar",
+      "type": "n8n-nodes-base.googleCalendarTool",
+      "typeVersion": 1.4,
+      "position": [
+        0,
+        -288
+      ],
+      "credentials": {
+        "googleCalendarOAuth2Api": {
+          "id": "g9H37kSDCN89o099",
+          "name": "Google Calendar account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "When chat message received": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent": {
+      "main": [
+        [
+          {
+            "node": "Send a message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get many events in Google Calendar": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "timeSavedMode": "fixed",
+    "timezone": "America/Argentina/Buenos_Aires",
+    "callerPolicy": "workflowsFromSameOwner",
+    "availableInMCP": false
+  },
+  "versionId": "279a660c-3fea-494c-9eeb-dd7889cd71a3",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "fc0db66322ee7ef62def8ae1ebfb1ad7f10c498806c4346fd60bdaac772cec49"
+  },
+  "nodeGroups": [],
+  "id": "Krcd6WHIlID1WoVb",
+  "tags": []
+}
